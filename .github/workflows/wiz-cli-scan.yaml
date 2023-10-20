@@ -105,6 +105,7 @@ jobs:
       run: |
         docker images list
         docker images --digests
+        ls -lha $HOME/.wiz/imageScanMapping/
         ./wizcli docker tag --image $IMAGE:$TAG
     
   wiz-cli-iac-scan:
