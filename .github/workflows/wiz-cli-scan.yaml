@@ -96,10 +96,24 @@ jobs:
       continue-on-error: true
       if: always()
 
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3.1.1
+      with:
+        cosign-release: 'v2.2.0'
+
     - name: Push docker image
+      id: push-image
       run: |
         docker push $IMAGE:$TAG
         echo "Pushing image here"
+
+    - name: Sign image with a key
+      run: |
+        cosign sign --yes --key env://COSIGN_KEY "${TAG}@${DIGEST}"
+      env:
+        TAGS: $TAG
+        COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
+        COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
 
     - name: Run wiz-cli Docker tag
       run: |
