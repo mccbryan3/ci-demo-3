@@ -119,7 +119,7 @@ jobs:
         TAGS: $TAG
         COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
         COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
-        DIGEST: ${{ steps.image-digest.outputs }}
+        DIGEST: ${{ steps.image-digest.outputs.stdout }}
 
     - name: Run wiz-cli Docker tag
       run: |
