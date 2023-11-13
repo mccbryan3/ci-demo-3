@@ -114,7 +114,7 @@ jobs:
 
     - name: Sign image with a key
       run: |
-        cosign sign --yes --key env://COSIGN_KEY "$IMAGE:$TAGS@DIGEST"
+        cosign sign --yes --key env://COSIGN_KEY "$IMAGE@$DIGEST"
       env:
         TAGS: $TAG
         COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
