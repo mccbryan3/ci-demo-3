@@ -107,13 +107,19 @@ jobs:
         docker push $IMAGE:$TAG
         echo "Pushing image here"
 
+    - name: Get image digest
+      id: image-digest
+      run: |
+        docker images $IMAGE:$TAG --no-trunc | awk '{print $3}' | tail -n +2
+
     - name: Sign image with a key
       run: |
-        cosign sign --yes --key env://COSIGN_KEY $IMAGE:$TAG
+        cosign sign --yes --key env://COSIGN_KEY "$IMAGE:$TAGS@DIGEST"
       env:
         TAGS: $TAG
         COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
         COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        DIGEST: ${{ steps.image-digest.outputs }}
 
     - name: Run wiz-cli Docker tag
       run: |
