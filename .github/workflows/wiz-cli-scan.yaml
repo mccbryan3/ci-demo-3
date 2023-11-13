@@ -15,7 +15,7 @@ jobs:
       SCAN_PATH_FAIL: "container-fail"
       IMAGE: mccbryan/setestimage
       TAG: ${{github.run_number}}
-      IAC_POLICY: "iac-fail-medium" # Set the desired Wiz-cli policy to use
+      IAC_POLICY: "block-iac-fail-medium" # Set the desired Wiz-cli policy to use
       VULN_POLICIES: "vuln-one-medium"
       WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
       WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
@@ -96,10 +96,30 @@ jobs:
       continue-on-error: true
       if: always()
 
+    - name: Install Cosign
+      uses: sigstore/cosign-installer@v3.1.1
+      with:
+        cosign-release: 'v2.2.0'
+
     - name: Push docker image
+      id: push-image
       run: |
         docker push $IMAGE:$TAG
         echo "Pushing image here"
+
+    - name: Get image digest
+      id: image-digest
+      run: |
+        echo "DIGEST=$(docker images $IMAGE:$TAG --no-trunc | awk '{print $3}' | tail -n +2)" >> "$GITHUB_OUTPUT"
+
+    - name: Sign image with a key
+      run: |
+        cosign sign --yes --key env://COSIGN_KEY "$IMAGE@$DIGEST"
+      env:
+        TAGS: $TAG
+        COSIGN_KEY: ${{ secrets.COSIGN_KEY }}
+        COSIGN_PASSWORD: ${{ secrets.COSIGN_PASSWORD }}
+        DIGEST: ${{ steps.image-digest.outputs.DIGEST }}
 
     - name: Run wiz-cli Docker tag
       run: |
